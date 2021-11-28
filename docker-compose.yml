@@ -1,0 +1,56 @@
+version: "3"
+
+networks:
+    docker-network:
+
+services:
+    wordpress:
+        depends_on:
+          - mysql
+          - phpmyadmin
+        image: wordpress:latest
+        restart: always
+        ports:
+          - "8000:80"
+        environment:
+          WORDPRESS_DB_HOST: mysql:3306
+          WORDPRESS_DB_USER: dockerdb
+          WORDPRESS_DB_PASSWORD: dockerdb
+          WORDPRESS_DB_NAME: dockerdb
+        volumes:
+          - ./src:/var/www/html:delegated
+        networks:
+          - docker-network
+
+    mysql:
+        image: mariadb:10.6
+        container_name: mysql
+        restart: unless-stopped
+        tty: true
+        ports:
+            - 4306:3306
+        environment:
+            MYSQL_DATABASE: dockerdb
+            MYSQL_USER: dockerdb
+            MYSQL_PASSWORD: dockerdb
+            MYSQL_ROOT_PASSWORD: dockerdb
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - ./mysql:/var/lib/mysql
+        networks:
+            - docker-network
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: always
+        container_name: phpmyaadmin
+        depends_on: 
+            - mysql
+        ports:
+            - 9000:80
+        environment: 
+            PMA_HOST: mysql
+            MYSQL_ROOT_PASSWORD: dockerdb
+        networks:
+            - docker-network
